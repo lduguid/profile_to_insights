@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/DateTime.tsv
+/Distribution.tsv
+/Formats.tsv
+/Outliers.tsv
+/Statistics.tsv
+/Verification.tsv
