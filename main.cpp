@@ -30,6 +30,16 @@ static bool is_category_end(const char* start_category, const char* current)
 }
 
 
+static char* get_column_value(char* column_name, char echr)
+{
+  char* equal = strchr(column_name, '=');
+  equal++;
+  char* end = strchr(equal, echr);
+  if (end) *end = '\0';
+  return equal;
+}
+
+
 int main(char argc, char* argv[])
 {
 
@@ -40,12 +50,17 @@ int main(char argc, char* argv[])
     return 1;
   }
 
-  char buffer[1024] = { 0 };
-  char fputs_buffer[1024] = { 0 };
+  char raw_buffer[8196] = { 0 };
+
+  char row_buffer[8196] = { 0 };
+  char* cur_row_pos = row_buffer;
+  
+  char header_buffer[1024] = { 0 };
+  char* cur_header_pos = header_buffer;
+
   bool found_category = false;
   int found_field_key = 0;
   int found_profile_info_name = 0;
-  int row_count = 0;
 
   for (int ii = 0; ii < sizeof(profile_categories) / sizeof(profile_categories[0]); ii++)
   {
@@ -60,72 +75,85 @@ int main(char argc, char* argv[])
 
     for (int i = 0; i < sizeof(profile_info_list) / sizeof(profile_info_list[0]); i++)
     {
-      if (!found_category && is_category_start(profile_categories[ii].name, profile_info_list[ii].name))
+      if (!found_category && is_category_start(profile_categories[ii].name, profile_info_list[i].name))
       {
         found_category = true;
         continue;
       }
 
-      if (found_category && !is_category_end(profile_categories[ii].name, profile_info_list[ii].name))
+      if (found_category && !is_category_end(profile_categories[ii].name, profile_info_list[i].name))
       {
-        sprintf(fputs_buffer, "Category: %s\n", profile_categories[ii].name);
-        fputs(fputs_buffer, categoryFile);
-
-        while (fgets(buffer, 1024, profileFile) != NULL)
+        if (i == 1) 
+          cur_header_pos += sprintf(cur_header_pos, "%s\t", profile_categories[ii].name);
+          
+        while (fgets(raw_buffer, 1024, profileFile) != NULL)
         {
           // NEED to find in each '[FIELD]' block or blank cell.
 
-          if (strncmp(buffer, PROFILEFKEY, strlen(PROFILEFKEY)) == 0)
+          if (strncmp(raw_buffer, PROFILEFKEY, strlen(PROFILEFKEY)) == 0)
           {
             if (found_field_key != found_profile_info_name)
             {
-              sprintf(fputs_buffer, "*blank*\n");
-              fputs(fputs_buffer, categoryFile);
+              cur_row_pos += sprintf(cur_row_pos, "\t");
               found_profile_info_name = found_field_key;
             }
 
             found_field_key++;
           }
-          else if (strncmp(buffer, profile_info_list[i].name, strlen(profile_info_list[i].name)) == 0)
+          else if (strncmp(raw_buffer, profile_info_list[i].name, strlen(profile_info_list[i].name)) == 0)
           {
-            sprintf(fputs_buffer, "%s", buffer);
-            fputs(fputs_buffer, categoryFile);
+            if (row_buffer[0] == '\0')
+              cur_row_pos += sprintf(cur_row_pos, "%s\t", profile_info_list[i].name);
+
+            char* column_value = get_column_value(raw_buffer, '\n');
+            cur_row_pos += sprintf(cur_row_pos, "%s\t", column_value);
             found_profile_info_name++;
           }
-          else if ((strncmp(buffer, PROFILEFNAME, strlen(PROFILEFNAME)) == 0))
+          else if ((strncmp(raw_buffer, PROFILEFNAME, strlen(PROFILEFNAME)) == 0))
           {
-            sprintf(fputs_buffer, "%s", buffer);
-            fputs(fputs_buffer, categoryFile);
+            if (i==1) 
+              cur_header_pos += sprintf(cur_header_pos, "%s\t", get_column_value(raw_buffer, ' '));
           }
-          else if ((strncmp(buffer, PROFILEFTYPE, strlen(PROFILEFTYPE)) == 0))
+          else if ((strncmp(raw_buffer, PROFILEFTYPE, strlen(PROFILEFTYPE)) == 0))
           {
-            sprintf(fputs_buffer, "%s", buffer);
-            fputs(fputs_buffer, categoryFile);
+            // should only need type if we want to have the same field column order 
+            // used on extended profile tab (C,D,N,L)
+            ;
           }
-
-          row_count++;
         }
 
-        // capture potential blank with last column field.
+        // capture potential blank with last profile field block in profile.info.
 
         if (found_field_key != found_profile_info_name)
         {
-          sprintf(fputs_buffer, "*blank*\n");
-          fputs(fputs_buffer, categoryFile);
+          cur_row_pos += sprintf(cur_row_pos, "\t");
           found_profile_info_name = found_field_key;
         }
 
         found_field_key = 0;
         found_profile_info_name = 0;
-
-        sprintf(fputs_buffer, "\n");
-        fputs(fputs_buffer, categoryFile);
         fseek(profileFile, 0, SEEK_SET);
       }
       else
       {
         found_category = false;
       }
+      
+      if (i == 1)
+      {
+        // replace last '\t' with '\n'
+        char* end = strrchr(header_buffer, '\t');
+        if (end) *end = '\n';
+        fputs(header_buffer, categoryFile);
+        cur_header_pos = header_buffer;
+      }
+
+      // replace last '\t' with '\n'
+      char* end = strrchr(row_buffer, '\t');
+      if (end) *end = '\n';
+      fputs(row_buffer, categoryFile);
+      row_buffer[0] = '\0';
+      cur_row_pos = row_buffer;
     }
 
     fclose(categoryFile);
