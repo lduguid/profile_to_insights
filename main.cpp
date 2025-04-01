@@ -23,6 +23,12 @@ static char* get_column_value(char* column_name, char echr)
   return equal;
 }
 
+static bool is_multi_value(const char *value)
+{
+  if (strchr(value, PROFILESEPARATOR)) return true;
+  return false;
+}
+
 static void add_field_type_list(int index, data_field *cdf)
 {
   
@@ -47,8 +53,11 @@ static void add_field_type_list(int index, data_field *cdf)
     if (prev)
     {
       prev->dfs = (data_fields*)malloc(sizeof(data_fields));
-      if (cdf) prev->dfs->df = *cdf;
-      prev->dfs->dfs = nullptr;
+      if (prev->dfs) 
+      {
+        if (cdf) prev->dfs->df = *cdf;
+        prev->dfs->dfs = nullptr;
+      }
     }
   }
 }
@@ -58,6 +67,14 @@ static void populate_value(char *buf, data_field *cdf)
   char key[128] = { 0 };
   get_column_key(buf, key);
   const char* value = get_column_value(buf, '\n');
+  char* raw_val = nullptr;
+  if (is_multi_value(value))
+  {
+    raw_val = (char*)malloc(strlen(value) + 1);
+    if (raw_val) strcpy(raw_val, value);
+    value = get_column_value(buf, ' ');           // extract first value
+  }
+  
   char* val = (char*)malloc(strlen(value) + 1);
   if (val) strcpy(val, value);
 
@@ -105,7 +122,7 @@ static void populate_value(char *buf, data_field *cdf)
     // OUTLIERS
     else if (strcmp(key, PROFILELONGEST) == 0) cdf->pdf->LONGEST.value = val;
     else if (strcmp(key, PROFILESHORTEST) == 0) cdf->pdf->SHORTEST.value = val;
-    else if (strcmp(key, PROFILELOWEST) == 0) cdf->pdf->LOWEST.value = val;
+    else if (strcmp(key, PROFILELOWEST) == 0) { cdf->pdf->LOWEST.value = val; cdf->pdf->LOWEST.raw_value = raw_val; }
     else if (strcmp(key, PROFILEHIGHEST) == 0) cdf->pdf->HIGHEST.value = val;
     else if (strcmp(key, PROFILEMOSTCOMMON) == 0) cdf->pdf->FORMAT_MOST_COMMON.value = val;
     else if (strcmp(key, PROFILELEASTCOMMON) == 0) cdf->pdf->LEAST_COMMON.value = val;
