@@ -1,5 +1,6 @@
 #pragma once
 
+
 #define PROFILEFILENAME "C:\\Users\\User\\Desktop\\work\\SST-2025-001\\profile.info.snapshot"
 
 #define PROFILESEPARATOR    '|'
@@ -68,95 +69,159 @@
 
 
 typedef struct {
-  const char* name;
-  int type;
-  int cat;
-  int subcat;
-  int subsubcat;
-  int subsubsubcat;
-  int subsubsubsubcat;
-  int subsubsubsubsubcat;
-} profile_info;
-
-typedef struct {
-	const char* name;
+	const char* catname;
+	int field_count;
 	const char* output_filename;
 } profile_category;
 
-profile_category profile_categories[] = {
-	{CATVERIFICATION, "Verification.tsv" },
-	{CATSTATISTICS, "Statistics.tsv"},
-	{CATDISTRIBUTION, "Distribution.tsv"},
-	{CATDATETIME, "DateTime.tsv"},
-	{CATOUTLIERS, "Outliers.tsv"},
-	{CATFORMATS, "Formats.tsv"}
+
+profile_category profile_category_files[] = {
+	{CATVERIFICATION,  9, "Verification.tsv" },
+	{CATSTATISTICS,		10, "Statistics.tsv"	 },
+	{CATDISTRIBUTION,  7, "Distribution.tsv" },
+	{CATDATETIME,			 9, "DateTime.tsv"     },
+	{CATOUTLIERS,			 8, "Outliers.tsv"     },
+	{CATFORMATS,			 8, "Formats.tsv"      }
 };
 
 
-profile_info profile_info_list[] =
+typedef struct {
+	const char* profile_name;
+	const char* category_name;
+	char* value;
+} profile_datum;
+
+
+typedef struct {
+	profile_datum INVALID;
+	profile_datum VALID;
+	profile_datum ALL_ZERO;
+	profile_datum START_ZERO;
+	profile_datum BLANKS;
+	profile_datum LEADING_BLANK;
+	profile_datum TRAILING_BLANK;
+	profile_datum SORTA;
+	profile_datum SORTB;
+	profile_datum MAX;
+	profile_datum MIN;
+	profile_datum AVER;
+	profile_datum RANGE;
+	profile_datum POSITIVE;
+	profile_datum POSITIVE_TOTAL;
+	profile_datum NEGATIVE;
+	profile_datum NEGATIVE_TOTAL;
+	profile_datum ZERO;
+	profile_datum TOTAL;
+	profile_datum Q25;
+	profile_datum MEDIAN;
+	profile_datum Q75;
+	profile_datum VARIANCE;
+	profile_datum STDEV;
+	profile_datum KURTOSIS;
+	profile_datum SKEWNESS;
+	profile_datum WEEKENDS;
+	profile_datum YEAR;
+	profile_datum MONTH;
+	profile_datum DOW;
+	profile_datum DOM;
+	profile_datum QUARTER;
+	profile_datum DOY;
+	profile_datum HOURS;
+	profile_datum MINUTES;
+	profile_datum LONGEST;
+	profile_datum SHORTEST;
+	profile_datum LOWEST;
+	profile_datum HIGHEST;
+	profile_datum MOST_COMMON;
+	profile_datum LEAST_COMMON;
+	profile_datum UNIQUE;
+	profile_datum UNIQUE_ONE;
+	profile_datum FORMAT_UNIQUE;
+	profile_datum FORMAT_UNIQUE_ONE;
+	profile_datum FORMAT_MOST_COMMON;
+	profile_datum FORMAT_LEAST_COMMON;
+	profile_datum LLN;
+	profile_datum LLR;
+	profile_datum LLD;
+	profile_datum STRAT;
+
+} profile_data_fields;
+
+
+profile_data_fields profile_data = {
+	.INVALID							= {.profile_name = {PROFILEINVALID			}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.VALID								= {.profile_name = {PROFILEVALID				}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.ALL_ZERO							= {.profile_name = {PROFILEALLZERO			}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.START_ZERO						= {.profile_name = {PROFILESTARTZERO		}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.BLANKS								= {.profile_name = {PROFILEBLANKS				}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.LEADING_BLANK				= {.profile_name = {PROFILELEADINGBL		}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.TRAILING_BLANK				= {.profile_name = {PROFILETRAILINGBL		}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.SORTA								=	{.profile_name = {PROFILESORTA				}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.SORTB								= {.profile_name = {PROFILESORTD				}, .category_name = {CATVERIFICATION	}, .value = nullptr },
+	.MAX									= {.profile_name = {PROFILEMAX					}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.MIN									= {.profile_name = {PROFILEMIN					}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.AVER									= {.profile_name = {PROFILEAVERAGE			}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.RANGE								= {.profile_name = {PROFILERANGE				}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.POSITIVE							= {.profile_name = {PROFILEPOS					}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.POSITIVE_TOTAL				= {.profile_name = {PROFILEPOSTOT				}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.NEGATIVE							= {.profile_name = {PROFILENEG					}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.NEGATIVE_TOTAL				= {.profile_name = {PROFILENEGTOT				}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.ZERO									= {.profile_name = {PROFILEZERO					}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.TOTAL								= {.profile_name = {PROFILETOT					}, .category_name = {CATSTATISTICS		}, .value = nullptr },
+	.Q25									= {.profile_name = {PROFILEQ25					}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.MEDIAN								= {.profile_name = {PROFILEMEDIAN				}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.Q75									= {.profile_name = {PROFILEQ75					}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.VARIANCE							= {.profile_name = {PROFILEVARIANCE			}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.STDEV								= {.profile_name = {PROFILESTDEV				}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.KURTOSIS							= {.profile_name = {PROFILEKURT					}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.SKEWNESS							= {.profile_name = {PROFILESKEW					}, .category_name = {CATDISTRIBUTION	}, .value = nullptr },
+	.WEEKENDS							= {.profile_name = {PROFILEWEEKENDS			}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.YEAR									= {.profile_name = {PROFILEYEAR					}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.MONTH								= {.profile_name = {PROFILEMONTH				}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.DOW									= {.profile_name = {PROFILEDOW					}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.DOM									= {.profile_name = {PROFILEDOM					}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.QUARTER							= {.profile_name = {PROFILEQUARTER			}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.DOY									= {.profile_name = {PROFILEDOY					}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.HOURS								= {.profile_name = {PROFILEHOURS				}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.MINUTES							= {.profile_name = {PROFILEMINUTES			}, .category_name = {CATDATETIME			}, .value = nullptr },
+	.LONGEST							= {.profile_name = {PROFILELONGEST			}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.SHORTEST							= {.profile_name = {PROFILESHORTEST			}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.LOWEST								=	{.profile_name = {PROFILELOWEST				}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.HIGHEST							= {.profile_name = {PROFILEHIGHEST			}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.MOST_COMMON					= {.profile_name = {PROFILEMOSTCOMMON		}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.LEAST_COMMON					= {.profile_name = {PROFILELEASTCOMMON	}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.UNIQUE								= {.profile_name = {PROFILEUNIQUE				}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.UNIQUE_ONE						= {.profile_name = {PROFILEUNIQUEONE		}, .category_name = {CATOUTLIERS			}, .value = nullptr },
+	.FORMAT_UNIQUE				= {.profile_name = {PROFILEFRMUNIQUE		}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.FORMAT_UNIQUE_ONE		= {.profile_name = {PROFILEFRMUNIQUEONE	}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.FORMAT_MOST_COMMON		= {.profile_name = {PROFILEFRMMOSTCMN		}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.FORMAT_LEAST_COMMON	= {.profile_name = {PROFILEFRMLEASTCMN	}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.LLN									= {.profile_name = {PROFILELLN					}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.LLR									= {.profile_name = {PROFILELLR					}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.LLD									= {.profile_name = {PROFILELLD					}, .category_name = {CATFORMATS				}, .value = nullptr },
+	.STRAT								= {.profile_name = {PROFILESTA					}, .category_name = {CATFORMATS				}, .value = nullptr }
+};
+
+
+typedef struct
 {
-	{CATVERIFICATION,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEINVALID,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEVALID,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEALLZERO,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILESTARTZERO,	  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEBLANKS,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILELEADINGBL,	  1, 2, 3, 4, 5, 6, 7},
-	{PROFILETRAILINGBL,   1, 2, 3, 4, 5, 6, 7},
-	{PROFILESORTA,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILESORTD,			  1, 2, 3, 4, 5, 6, 7},
-											  
-	{CATSTATISTICS,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEMAX,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEMIN,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEAVERAGE,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILERANGE,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEPOS,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEPOSTOT,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILENEG,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILENEGTOT,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEZERO,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILETOT,				  1, 2, 3, 4, 5, 6, 7},
-											  
-	{CATDISTRIBUTION,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEQ25,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEMEDIAN,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEQ75,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEVARIANCE,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILESTDEV,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEKURT,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILESKEW,				  1, 2, 3, 4, 5, 6, 7},
-											  
-	{CATDATETIME,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEWEEKENDS,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEYEAR,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEMONTH,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEDOW,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEDOM,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEQUARTER,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEDOY,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEHOURS,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEMINUTES,		  1, 2, 3, 4, 5, 6, 7},
-											  
-	{CATOUTLIERS,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILELONGEST,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILESHORTEST,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILELOWEST,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEHIGHEST,		  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEMOSTCOMMON,   1, 2, 3, 4, 5, 6, 7},
-	{PROFILELEASTCOMMON,  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEUNIQUE,			  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEUNIQUEONE,	  1, 2, 3, 4, 5, 6, 7},
-											  
-	{CATFORMATS,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEFRMUNIQUE,	  1, 2, 3, 4, 5, 6, 7},
-	{PROFILEFRMUNIQUEONE, 1, 2, 3, 4, 5, 6, 7},
-	{PROFILEFRMMOSTCMN,   1, 2, 3, 4, 5, 6, 7},
-	{PROFILEFRMLEASTCMN,  1, 2, 3, 4, 5, 6, 7},
-	{PROFILELLN,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILELLR,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILELLD,				  1, 2, 3, 4, 5, 6, 7},
-	{PROFILESTA,				  1, 2, 3, 4, 5, 6, 7}
+	char name[128];
+	profile_data_fields *pdf;
+} data_field;
+
+
+typedef struct data_fields_tag
+{
+	data_field df;
+	data_fields_tag* dfs;
+} data_fields;
+
+
+// index to type is 0 - 'C', 1 - 'N', 2 - 'D', 3 - 'L'
+
+data_fields data_fields_types_list[4] = {
+	{ .df = { .name = { 0 }, .pdf = { nullptr } }, .dfs = nullptr },
+	{ .df = { .name = { 0 }, .pdf = { nullptr } }, .dfs = nullptr },
+	{ .df = { .name = { 0 }, .pdf = { nullptr } }, .dfs = nullptr },
+	{ .df = { .name = { 0 }, .pdf = { nullptr } }, .dfs = nullptr }
 };
-
-
