@@ -1,7 +1,7 @@
 #pragma once
 
 
-#define PROFILEFILENAME "C:\\Users\\User\\Desktop\\work\\SST-2025-001\\profile.info.snapshot"
+#define PROFILEFILENAME "profile.info"
 
 #define PROFILESEPARATOR    '|'
 
@@ -89,6 +89,7 @@ typedef struct {
 	const char* profile_name;
 	const char* category_name;
 	char* value;
+	char* raw_value;
 } profile_datum;
 
 

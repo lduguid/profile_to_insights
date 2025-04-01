@@ -14,7 +14,6 @@ static void get_column_key(char* row_buffer, char *key)
   strncpy(key, row_buffer, equal - row_buffer);
 }
 
-
 static char* get_column_value(char* column_name, char echr)
 {
   char* equal = strchr(column_name, '=');
@@ -23,7 +22,6 @@ static char* get_column_value(char* column_name, char echr)
   if (end) *end = '\0';
   return equal;
 }
-
 
 static void add_field_type_list(int index, data_field *cdf)
 {
@@ -54,7 +52,6 @@ static void add_field_type_list(int index, data_field *cdf)
     }
   }
 }
-
 
 static void populate_value(char *buf, data_field *cdf)
 {
@@ -127,7 +124,6 @@ static void populate_value(char *buf, data_field *cdf)
   }
 }
 
-
 static void output_verification(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE *categoryFile)
 {
   if (i == 0)   // first field node.
@@ -161,6 +157,166 @@ static void output_verification(int i, int fpfi, data_fields* curr, profile_data
   }
 }
 
+static void output_statistics(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+{
+  if (i == 0)   // first field node.
+  {
+    if (fpfi == 1) fputs(pdf->MAX.profile_name, categoryFile);
+    else if (fpfi == 2) fputs(pdf->MIN.profile_name, categoryFile);
+    else if (fpfi == 3) fputs(pdf->AVER.profile_name, categoryFile);
+    else if (fpfi == 4) fputs(pdf->RANGE.profile_name, categoryFile);
+    else if (fpfi == 5) fputs(pdf->POSITIVE.profile_name, categoryFile);
+    else if (fpfi == 6) fputs(pdf->POSITIVE_TOTAL.profile_name, categoryFile);
+    else if (fpfi == 7) fputs(pdf->NEGATIVE.profile_name, categoryFile);
+    else if (fpfi == 8) fputs(pdf->NEGATIVE_TOTAL.profile_name, categoryFile);
+    else if (fpfi == 9) fputs(pdf->ZERO.profile_name, categoryFile);
+    else if (fpfi == 10) fputs(pdf->TOTAL.profile_name, categoryFile);
+  }
+
+  while (curr)
+  {
+    pdf = curr->df.pdf;
+    fputs("\t", categoryFile);
+    if (fpfi == 1) fputs(pdf->MAX.value ? pdf->MAX.value : "", categoryFile);
+    else if (fpfi == 2) fputs(pdf->MIN.value ? pdf->MIN.value : "", categoryFile);
+    else if (fpfi == 3) fputs(pdf->AVER.value ? pdf->AVER.value : "", categoryFile);
+    else if (fpfi == 4) fputs(pdf->RANGE.value ? pdf->RANGE.value : "", categoryFile);
+    else if (fpfi == 5) fputs(pdf->POSITIVE.value ? pdf->POSITIVE.value : "", categoryFile);
+    else if (fpfi == 6) fputs(pdf->POSITIVE_TOTAL.value ? pdf->POSITIVE_TOTAL.value : "", categoryFile);
+    else if (fpfi == 7) fputs(pdf->NEGATIVE.value ? pdf->NEGATIVE.value : "", categoryFile);
+    else if (fpfi == 8) fputs(pdf->NEGATIVE_TOTAL.value ? pdf->NEGATIVE_TOTAL.value : "", categoryFile);
+    else if (fpfi == 9) fputs(pdf->ZERO.value ? pdf->ZERO.value : "", categoryFile);
+    else if (fpfi == 10) fputs(pdf->TOTAL.value ? pdf->TOTAL.value : "", categoryFile);
+
+    curr = curr->dfs;
+  }
+}
+
+static void output_distribution(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+{
+  if (i == 0)   // first field node.
+  {
+    if (fpfi == 1)      fputs(pdf->Q25.profile_name, categoryFile);
+    else if (fpfi == 2) fputs(pdf->MEDIAN.profile_name, categoryFile);
+    else if (fpfi == 3) fputs(pdf->Q75.profile_name, categoryFile);
+    else if (fpfi == 4) fputs(pdf->VARIANCE.profile_name, categoryFile);
+    else if (fpfi == 5) fputs(pdf->STDEV.profile_name, categoryFile);
+    else if (fpfi == 6) fputs(pdf->KURTOSIS.profile_name, categoryFile);
+    else if (fpfi == 7) fputs(pdf->SKEWNESS.profile_name, categoryFile);
+  }
+
+  while (curr)
+  {
+    pdf = curr->df.pdf;
+    fputs("\t", categoryFile);
+    if (fpfi == 1)      fputs(pdf->Q25.value ? pdf->Q25.value : "", categoryFile);
+    else if (fpfi == 2) fputs(pdf->MEDIAN.value ? pdf->MEDIAN.value : "", categoryFile);
+    else if (fpfi == 3) fputs(pdf->Q75.value ? pdf->Q75.value : "", categoryFile);
+    else if (fpfi == 4) fputs(pdf->VARIANCE.value ? pdf->VARIANCE.value : "", categoryFile);
+    else if (fpfi == 5) fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
+    else if (fpfi == 6) fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
+    else if (fpfi == 7) fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
+    
+    curr = curr->dfs;
+  }
+}
+
+static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+{
+  if (i == 0)   // first field node.
+  {
+    if (fpfi == 1) fputs(pdf->WEEKENDS.profile_name, categoryFile);
+    else if (fpfi == 2) fputs(pdf->YEAR.profile_name, categoryFile);
+    else if (fpfi == 3) fputs(pdf->MONTH.profile_name, categoryFile);
+    else if (fpfi == 4) fputs(pdf->DOW.profile_name, categoryFile);
+    else if (fpfi == 5) fputs(pdf->DOM.profile_name, categoryFile);
+    else if (fpfi == 6) fputs(pdf->QUARTER.profile_name, categoryFile);
+    else if (fpfi == 7) fputs(pdf->DOY.profile_name, categoryFile);
+    else if (fpfi == 8) fputs(pdf->HOURS.profile_name, categoryFile);
+    else if (fpfi == 9) fputs(pdf->MINUTES.profile_name, categoryFile);
+  }
+
+  while (curr)
+  {
+    pdf = curr->df.pdf;
+    fputs("\t", categoryFile);
+    if (fpfi == 1) fputs(pdf->WEEKENDS.value ? pdf->WEEKENDS.value : "", categoryFile);
+    else if (fpfi == 2) fputs(pdf->YEAR.value ? pdf->YEAR.value : "", categoryFile);
+    else if (fpfi == 3) fputs(pdf->MONTH.value ? pdf->MONTH.value : "", categoryFile);
+    else if (fpfi == 4) fputs(pdf->DOW.value ? pdf->DOW.value : "", categoryFile);
+    else if (fpfi == 5) fputs(pdf->DOM.value ? pdf->DOM.value : "", categoryFile);
+    else if (fpfi == 6) fputs(pdf->QUARTER.value ? pdf->QUARTER.value : "", categoryFile);
+    else if (fpfi == 7) fputs(pdf->DOY.value ? pdf->DOY.value : "", categoryFile);
+    else if (fpfi == 8) fputs(pdf->HOURS.value ? pdf->HOURS.value : "", categoryFile);
+    else if (fpfi == 9) fputs(pdf->MINUTES.value ? pdf->MINUTES.value : "", categoryFile);
+
+    curr = curr->dfs;
+  }
+}
+
+static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+{
+  if (i == 0)   // first field node.
+  {
+    if (fpfi == 1) fputs(pdf->LONGEST.profile_name, categoryFile);
+    else if (fpfi == 2) fputs(pdf->SHORTEST.profile_name, categoryFile);
+    else if (fpfi == 3) fputs(pdf->LOWEST.profile_name, categoryFile);
+    else if (fpfi == 4) fputs(pdf->HIGHEST.profile_name, categoryFile);
+    else if (fpfi == 5) fputs(pdf->MOST_COMMON.profile_name, categoryFile);
+    else if (fpfi == 6) fputs(pdf->LEAST_COMMON.profile_name, categoryFile);
+    else if (fpfi == 7) fputs(pdf->UNIQUE.profile_name, categoryFile);
+    else if (fpfi == 8) fputs(pdf->UNIQUE_ONE.profile_name, categoryFile);
+  }
+
+  while (curr)
+  {
+    pdf = curr->df.pdf;
+    fputs("\t", categoryFile);
+    if (fpfi == 1) fputs(pdf->LONGEST.value ? pdf->LONGEST.value : "", categoryFile);
+    else if (fpfi == 2) fputs(pdf->SHORTEST.value ? pdf->SHORTEST.value : "", categoryFile);
+    else if (fpfi == 3) fputs(pdf->LOWEST.value ? pdf->LOWEST.value : "", categoryFile);
+    else if (fpfi == 4) fputs(pdf->HIGHEST.value ? pdf->HIGHEST.value : "", categoryFile);
+    else if (fpfi == 5) fputs(pdf->MOST_COMMON.value ? pdf->MOST_COMMON.value : "", categoryFile);
+    else if (fpfi == 6) fputs(pdf->LEAST_COMMON.value ? pdf->LEAST_COMMON.value : "", categoryFile);
+    else if (fpfi == 7) fputs(pdf->UNIQUE.value ? pdf->UNIQUE.value : "", categoryFile);
+    else if (fpfi == 8) fputs(pdf->UNIQUE_ONE.value ? pdf->UNIQUE_ONE.value : "", categoryFile);
+
+    curr = curr->dfs;
+  }
+}
+
+static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+{
+  if (i == 0)   // first field node.
+  {
+    if (fpfi == 1) fputs(pdf->FORMAT_UNIQUE.profile_name, categoryFile);
+    else if (fpfi == 2) fputs(pdf->FORMAT_UNIQUE_ONE.profile_name, categoryFile);
+    else if (fpfi == 3) fputs(pdf->FORMAT_MOST_COMMON.profile_name, categoryFile);
+    else if (fpfi == 4) fputs(pdf->FORMAT_LEAST_COMMON.profile_name, categoryFile);
+    else if (fpfi == 5) fputs(pdf->LLN.profile_name, categoryFile);
+    else if (fpfi == 6) fputs(pdf->LLR.profile_name, categoryFile);
+    else if (fpfi == 7) fputs(pdf->LLD.profile_name, categoryFile);
+    else if (fpfi == 8) fputs(pdf->STRAT.profile_name, categoryFile);
+  }
+
+  while (curr)
+  {
+    pdf = curr->df.pdf;
+    fputs("\t", categoryFile);
+    if (fpfi == 1) fputs(pdf->FORMAT_UNIQUE.value ? pdf->FORMAT_UNIQUE.value : "", categoryFile);
+    else if (fpfi == 2) fputs(pdf->FORMAT_UNIQUE_ONE.value ? pdf->FORMAT_UNIQUE_ONE.value : "", categoryFile);
+    else if (fpfi == 3) fputs(pdf->FORMAT_MOST_COMMON.value ? pdf->FORMAT_MOST_COMMON.value : "", categoryFile);
+    else if (fpfi == 4) fputs(pdf->FORMAT_LEAST_COMMON.value ? pdf->FORMAT_LEAST_COMMON.value : "", categoryFile);
+    else if (fpfi == 5) fputs(pdf->LLN.value ? pdf->LLN.value : "", categoryFile);
+    else if (fpfi == 6) fputs(pdf->LLR.value ? pdf->LLR.value : "", categoryFile);
+    else if (fpfi == 7) fputs(pdf->LLD.value ? pdf->LLD.value : "", categoryFile);
+    else if (fpfi == 8) fputs(pdf->STRAT.value ? pdf->STRAT.value : "", categoryFile);
+
+    curr = curr->dfs;
+  }
+}
+
+
 // requires an profile.info file in the CWD.  If RUN from analyzer, ensure profile tab open (profile.info deleted on tab close)
 // heap memory is not expliclty freed!  As the lifetime of this memory is the the duration fo the executable, OS cleans it all up on exit.
 // if this code is to be re-purposed in an larger application, free'ing will be required.
@@ -172,7 +328,7 @@ int main(char argc, char* argv[])
   FILE *profileFile = fopen(PROFILEFILENAME, "r");
   if (profileFile == NULL)
   {
-    printf("Error: Could not open file %s\n", PROFILEFILENAME);
+    printf("Error: Could not open file %s.\n Info: Ensure the profile tab is open and this exe is in the same folder\n", PROFILEFILENAME);
     return 1;
   }
 
@@ -240,6 +396,8 @@ int main(char argc, char* argv[])
       return 1;
     }
 
+    printf("Info: Creating the file %s\n", profile_category_files[ii].output_filename);
+
     // do for column headers, then profile data
     
     int row_count = 0;
@@ -272,15 +430,32 @@ int main(char argc, char* argv[])
             // profile data
 
             curr = head;
-            
             profile_data_fields* pdf = curr->df.pdf;
 
             if (strcmp(profile_category_files[ii].catname, CATVERIFICATION) == 0)
             {
               output_verification(i, fpfi, curr, pdf, categoryFile);
             }
-            // TODO other categories
-           
+            else if (strcmp(profile_category_files[ii].catname, CATSTATISTICS) == 0)
+            {
+              output_statistics(i, fpfi, curr, pdf, categoryFile);
+            }
+            else if (strcmp(profile_category_files[ii].catname, CATDISTRIBUTION) == 0)
+            {
+              output_distribution(i, fpfi, curr, pdf, categoryFile);
+            }
+            else if (strcmp(profile_category_files[ii].catname, CATDATETIME) == 0)
+            {
+              output_datetime(i, fpfi, curr, pdf, categoryFile);
+            }
+            else if (strcmp(profile_category_files[ii].catname, CATOUTLIERS) == 0)
+            {
+              output_outliers(i, fpfi, curr, pdf, categoryFile);
+            }
+            else if (strcmp(profile_category_files[ii].catname, CATFORMATS) == 0)
+            {
+              output_formats(i, fpfi, curr, pdf, categoryFile);
+            }
           }
         }
       }
