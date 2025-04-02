@@ -409,3 +409,6 @@ FodyWeavers.xsd
 /Outliers_MostCommonValues_test.tsv
 /Outliers_MostCommonValues_Unit_Cost.tsv
 /Outliers_MostCommonValues_Vendor_No.tsv
+/Datetime_DayOfWeek_Invoice_Date.tsv
+/Datetime_Month_Invoice_Date.tsv
+/Datetime_Year_Invoice_Date.tsv

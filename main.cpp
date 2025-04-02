@@ -123,7 +123,7 @@ static void populate_value(char *buf, data_field *cdf)
   if (cdf)
   {
     // VERIFICATION
-    if      (strcmp(key, PROFILEINVALID) == 0) cdf->pdf->INVALID.value = val;
+    if (strcmp(key, PROFILEINVALID) == 0) cdf->pdf->INVALID.value = val;
     else if (strcmp(key, PROFILEVALID) == 0) cdf->pdf->VALID.value = val;
     else if (strcmp(key, PROFILEALLZERO) == 0) cdf->pdf->ALL_ZERO.value = val;
     else if (strcmp(key, PROFILESTARTZERO) == 0) cdf->pdf->START_ZERO.value = val;
@@ -153,9 +153,9 @@ static void populate_value(char *buf, data_field *cdf)
     else if (strcmp(key, PROFILESKEW) == 0) cdf->pdf->SKEWNESS.value = val;
     // DATETIME
     else if (strcmp(key, PROFILEWEEKENDS) == 0) cdf->pdf->WEEKENDS.value = val;
-    else if (strcmp(key, PROFILEYEAR) == 0) cdf->pdf->YEAR.value = val;
-    else if (strcmp(key, PROFILEMONTH) == 0) cdf->pdf->MONTH.value = val;
-    else if (strcmp(key, PROFILEDOW) == 0) cdf->pdf->DOW.value = val;
+    else if (strcmp(key, PROFILEYEAR) == 0) { cdf->pdf->YEAR.value = val; cdf->pdf->YEAR.raw_value = raw_val; }
+    else if (strcmp(key, PROFILEMONTH) == 0){ cdf->pdf->MONTH.value = val; cdf->pdf->MONTH.raw_value = raw_val; }
+    else if (strcmp(key, PROFILEDOW) == 0) { cdf->pdf->DOW.value = val; cdf->pdf->DOW.raw_value = raw_val; }
     else if (strcmp(key, PROFILEDOM) == 0) cdf->pdf->DOM.value = val;
     else if (strcmp(key, PROFILEQUARTER) == 0) cdf->pdf->QUARTER.value = val;
     else if (strcmp(key, PROFILEDOY) == 0) cdf->pdf->DOY.value = val;
@@ -173,8 +173,8 @@ static void populate_value(char *buf, data_field *cdf)
     // FORMAT
     else if (strcmp(key, PROFILEFRMUNIQUE) == 0) cdf->pdf->FORMAT_UNIQUE.value = val;
     else if (strcmp(key, PROFILEFRMUNIQUEONE) == 0) cdf->pdf->FORMAT_UNIQUE_ONE.value = val;
-    else if (strcmp(key, PROFILEFRMMOSTCMN) == 0) cdf->pdf->FORMAT_MOST_COMMON.value = val;
-    else if (strcmp(key, PROFILEFRMLEASTCMN) == 0) cdf->pdf->FORMAT_LEAST_COMMON.value = val;
+    else if (strcmp(key, PROFILEFRMMOSTCMN) == 0) { cdf->pdf->FORMAT_MOST_COMMON.value = val; cdf->pdf->FORMAT_MOST_COMMON.raw_value = raw_val; }
+    else if (strcmp(key, PROFILEFRMLEASTCMN) == 0){ cdf->pdf->FORMAT_LEAST_COMMON.value = val; cdf->pdf->FORMAT_LEAST_COMMON.raw_value = raw_val; }
     else if (strcmp(key, PROFILELLN) == 0) cdf->pdf->LLN.value = val;
     else if (strcmp(key, PROFILELLR) == 0) cdf->pdf->LLR.value = val;
     else if (strcmp(key, PROFILELLD) == 0) cdf->pdf->LLD.value = val;
@@ -272,37 +272,23 @@ static int output_distribution_column(int fpfi, const char* value, char* raw_val
   // ├── Datetime_Months_{ column_name }.tsv
   // └── DateTime_DayOfWeek_{ column_name }.tsv
 
-  // handle multi value - ineffiecent as will write out same raw_value up to 4 times if
-  // VARIANCE, STDEV, KURTOSIS, SKEWNESS all have some value.
-
-  switch (fpfi)
+  if (value && strlen(value))
   {
-  case 4: // VARIANCE
-  case 5: // STDEV
-  case 6: // KURTOSIS
-  case 7: // SKEWNESS
-  {
-    if (value && strlen(value))
+    // Distribution_{ column_name }.tsv
+    char output_filename[128] = { 0 };
+    sprintf(output_filename, "Distribution_%s.tsv", column_name);
+    FILE* multiValueFile = fopen(output_filename, "w");
+    if (multiValueFile == NULL)
     {
-      // Distribution_{ column_name }.tsv
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "Distribution_%s.tsv", column_name);
-      FILE* multiValueFile = fopen(output_filename, "w");
-      if (multiValueFile == NULL)
-      {
-        printf("Error: Could not open file %s\n", output_filename);
-        return 1;
-      }
-
-      //printf("Info: Creating the file %s\n", output_filename);
-      strat_to_tab(raw_value);
-      fputs(raw_value, multiValueFile);
-      if (multiValueFile) fclose(multiValueFile);
+      printf("Error: Could not open file %s\n", output_filename);
+      return 1;
     }
-  }
-  break;
-  }
 
+    strat_to_tab(raw_value);
+    fputs(raw_value, multiValueFile);
+    if (multiValueFile) fclose(multiValueFile);
+  }
+ 
   return 0;
 }
 
@@ -326,15 +312,53 @@ static void output_distribution(int i, int fpfi, data_fields* curr, profile_data
     if (fpfi == 1)      fputs(pdf->Q25.value ? pdf->Q25.value : "", categoryFile);
     else if (fpfi == 2) fputs(pdf->MEDIAN.value ? pdf->MEDIAN.value : "", categoryFile);
     else if (fpfi == 3) fputs(pdf->Q75.value ? pdf->Q75.value : "", categoryFile);
-    else if (fpfi == 4) fputs(pdf->VARIANCE.value ? pdf->VARIANCE.value : "", categoryFile);
-    else if (fpfi == 5) fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
-    else if (fpfi == 6) fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
-    else if (fpfi == 7) fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
-    
-    output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+    else if (fpfi == 4) {
+      fputs(pdf->VARIANCE.value ? pdf->VARIANCE.value : "", categoryFile);
+      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+    }
+    else if (fpfi == 5) {
+      fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
+      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+    }
+    else if (fpfi == 6) {
+      fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
+      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+    }
+    else if (fpfi == 7) {
+      fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
+      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+    }
     
     curr = curr->dfs;
   }
+}
+
+static int output_commons_column(int fpfi, char* raw_value, const char* output_filename, bool do_strat = false)
+{
+  // Outliers_MostCommonValues_{column_name}.tsv
+  // Outliers_LeastCommonValues_{ column_name }.tsv
+  // Formats_MostCommonValues_{ column_name }.tsv
+  // Formats_LeastCommonValues_{ column_name }.tsv
+
+  if (strlen(output_filename) && raw_value && strlen(raw_value))
+  {
+    FILE* multiValueFile = fopen(output_filename, "w");
+    if (multiValueFile == NULL)
+    {
+      printf("Error: Could not open file %s\n", output_filename);
+      return 1;
+    }
+
+    if (do_strat)
+      strat_to_tab(raw_value);
+    else
+      list_to_tab(raw_value);
+
+    fputs(raw_value, multiValueFile);
+    if (multiValueFile) fclose(multiValueFile);
+  }
+
+  return 0;
 }
 
 static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
@@ -357,9 +381,24 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
     pdf = curr->df.pdf;
     fputs("\t", categoryFile);
     if (fpfi == 1) fputs(pdf->WEEKENDS.value ? pdf->WEEKENDS.value : "", categoryFile);
-    else if (fpfi == 2) fputs(pdf->YEAR.value ? pdf->YEAR.value : "", categoryFile);
-    else if (fpfi == 3) fputs(pdf->MONTH.value ? pdf->MONTH.value : "", categoryFile);
-    else if (fpfi == 4) fputs(pdf->DOW.value ? pdf->DOW.value : "", categoryFile);
+    else if (fpfi == 2) {
+      fputs(pdf->YEAR.value ? pdf->YEAR.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "Year", curr->df.name);
+      output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
+    }
+    else if (fpfi == 3) {
+      fputs(pdf->MONTH.value ? pdf->MONTH.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "Month", curr->df.name);
+      output_commons_column(fpfi, pdf->MONTH.raw_value, output_filename, true);
+    }
+    else if (fpfi == 4) {
+      fputs(pdf->DOW.value ? pdf->DOW.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "DayOfWeek", curr->df.name);
+      output_commons_column(fpfi, pdf->DOW.raw_value, output_filename, true);
+    }
     else if (fpfi == 5) fputs(pdf->DOM.value ? pdf->DOM.value : "", categoryFile);
     else if (fpfi == 6) fputs(pdf->QUARTER.value ? pdf->QUARTER.value : "", categoryFile);
     else if (fpfi == 7) fputs(pdf->DOY.value ? pdf->DOY.value : "", categoryFile);
@@ -370,29 +409,7 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
   }
 }
 
-static int output_commons_column(int fpfi, char* raw_value, const char* output_filename)
-{
-  // Outliers_MostCommonValues_{column_name}.tsv
-  // Outliers_LeastCommonValues_{ column_name }.tsv
-  // Formats_MostCommonValues_{ column_name }.tsv
-  // Formats_LeastCommonValues_{ column_name }.tsv
 
-  if (strlen(output_filename) && raw_value && strlen(raw_value))
-  {
-    FILE* multiValueFile = fopen(output_filename, "w");
-    if (multiValueFile == NULL)
-    {
-      printf("Error: Could not open file %s\n", output_filename);
-      return 1;
-    }
-
-    list_to_tab(raw_value);
-    fputs(raw_value, multiValueFile);
-    if (multiValueFile) fclose(multiValueFile);
-  }
-
-  return 0;
-}
 
 static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
 {
@@ -459,13 +476,13 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
       fputs(pdf->FORMAT_MOST_COMMON.value ? pdf->FORMAT_MOST_COMMON.value : "", categoryFile);
       char output_filename[128] = { 0 };
       sprintf(output_filename, "%s_%s_%s.tsv", "Formats", "MostCommonValues", curr->df.name);
-      output_commons_column(fpfi, pdf->MOST_COMMON.raw_value, output_filename);
+      output_commons_column(fpfi, pdf->FORMAT_MOST_COMMON.raw_value, output_filename);
     }
     else if (fpfi == 4) {
       fputs(pdf->FORMAT_LEAST_COMMON.value ? pdf->FORMAT_LEAST_COMMON.value : "", categoryFile);
       char output_filename[128] = { 0 };
       sprintf(output_filename, "%s_%s_%s.tsv", "Formats", "LeastCommonValues", curr->df.name);
-      output_commons_column(fpfi, pdf->LEAST_COMMON.raw_value, output_filename);
+      output_commons_column(fpfi, pdf->FORMAT_LEAST_COMMON.raw_value, output_filename);
     }
     else if (fpfi == 5) fputs(pdf->LLN.value ? pdf->LLN.value : "", categoryFile);
     else if (fpfi == 6) fputs(pdf->LLR.value ? pdf->LLR.value : "", categoryFile);
@@ -539,10 +556,8 @@ int main(char argc, char* argv[])
 
   if (profileFile) fclose(profileFile);
 
-
   // OUTPUT - traverse and write out internal ADT of profile data on each column to the requested tab-seperated output files.
 
- 
   // iterate over each profile data out file
 
   for (int ii = 0; ii < sizeof(profile_category_files) / sizeof(profile_category_files[0]); ii++)
