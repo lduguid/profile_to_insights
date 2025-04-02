@@ -29,52 +29,8 @@ static bool is_multi_value(const char *value)
   return false;
 }
 
-static void strat_to_tab(char* raw_value)
-{
-  if (raw_value)
-  {
-    char* curr = raw_value;
-    char* prev_curr = curr;
-    while (curr)
-    {
-      char c = *curr;
-      if (c == '\0') break;
-      if (c == PROFILESEPARATOR)
-      {
-        *curr = '\0';
-        char* start = strrchr(prev_curr, ' ');
-        *start = '\t';
-        *curr = '\n';
-        prev_curr = curr;
-        prev_curr++;
-      }
-
-      curr++;
-    }
-  }
-}
-
-static void list_to_tab(char* raw_value)
-{
-  if (raw_value)
-  {
-    char* curr = raw_value;
-    char* prev_curr = curr;
-    while (curr)
-    {
-      char c = *curr;
-      if (c == '\0') break;
-      else if (c == PROFILESEPARATOR) *curr = '\n';
-      else if (c == ' ') *curr = '\t';
-      curr++;
-    }
-  }
-}
-
 static void add_field_type_list(int index, data_field *cdf)
 {
-  
-  // add a new node
   data_fields* head = &data_fields_types_list[index];
   data_fields *next = data_fields_types_list[index].dfs;
  
@@ -184,6 +140,56 @@ static void populate_value(char *buf, data_field *cdf)
   }
 }
 
+
+static void prepare_list_for_tab_output(char* raw_value)
+{
+  if (raw_value)
+  {
+    char* curr = raw_value;
+    char* prev_curr = curr;
+    while (curr)
+    {
+      char c = *curr;
+      if (c == '\0') break;
+      if (c == PROFILESEPARATOR)
+      {
+        *curr = '\0';
+        char* start = strrchr(prev_curr, ' ');
+        *start = '\t';
+        *curr = '\n';
+        prev_curr = curr;
+        prev_curr++;
+      }
+
+      curr++;
+    }
+  }
+}
+
+static int output_commons_column(int fpfi, char* raw_value, const char* output_filename)
+{
+  // Outliers_MostCommonValues_{column_name}.tsv
+  // Outliers_LeastCommonValues_{ column_name }.tsv
+  // Formats_MostCommonValues_{ column_name }.tsv
+  // Formats_LeastCommonValues_{ column_name }.tsv
+
+  if (strlen(output_filename) && raw_value && strlen(raw_value))
+  {
+    FILE* multiValueFile = fopen(output_filename, "w");
+    if (multiValueFile == NULL)
+    {
+      printf("Error: Could not open file %s\n", output_filename);
+      return 1;
+    }
+
+    prepare_list_for_tab_output(raw_value);
+    fputs(raw_value, multiValueFile);
+    if (multiValueFile) fclose(multiValueFile);
+  }
+
+  return 0;
+}
+
 static void output_verification(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE *categoryFile)
 {
   if (i == 0)   // first field node.
@@ -252,46 +258,6 @@ static void output_statistics(int i, int fpfi, data_fields* curr, profile_data_f
   }
 }
 
-static int output_distribution_column(int fpfi, const char* value, char* raw_value, const char* column_name)
-{
-  // For each `green value` in profiler using separate tsv file.
-  // Distribution: tsv of Distribution(it same for Standard deviation, Kurtosis, Skewness)
-  // Outliers : MostCommonValues, LeastCommonValues
-  // Datetime : Year, Months, DayOfWeek
-  //
-  // supplementary
-  // ├── Distribution_{ column_name }.tsv
-  //
-  // ├── Outliers_MostCommonValues_{ column_name }.tsv
-  // ├── Outliers_LeastCommonValues_{ column_name }.tsv
-  //
-  // ├── Formats_MostCommonValues_{ column_name }.tsv
-  // ├── Formats_LeastCommonValues_{ column_name }.tsv
-  //
-  // ├── Datetime_Year_{ column_name }.tsv
-  // ├── Datetime_Months_{ column_name }.tsv
-  // └── DateTime_DayOfWeek_{ column_name }.tsv
-
-  if (value && strlen(value))
-  {
-    // Distribution_{ column_name }.tsv
-    char output_filename[128] = { 0 };
-    sprintf(output_filename, "Distribution_%s.tsv", column_name);
-    FILE* multiValueFile = fopen(output_filename, "w");
-    if (multiValueFile == NULL)
-    {
-      printf("Error: Could not open file %s\n", output_filename);
-      return 1;
-    }
-
-    strat_to_tab(raw_value);
-    fputs(raw_value, multiValueFile);
-    if (multiValueFile) fclose(multiValueFile);
-  }
- 
-  return 0;
-}
-
 static void output_distribution(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
@@ -314,51 +280,31 @@ static void output_distribution(int i, int fpfi, data_fields* curr, profile_data
     else if (fpfi == 3) fputs(pdf->Q75.value ? pdf->Q75.value : "", categoryFile);
     else if (fpfi == 4) {
       fputs(pdf->VARIANCE.value ? pdf->VARIANCE.value : "", categoryFile);
-      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 5) {
       fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
-      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 6) {
       fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
-      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 7) {
       fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
-      output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     
     curr = curr->dfs;
   }
-}
-
-static int output_commons_column(int fpfi, char* raw_value, const char* output_filename, bool do_strat = false)
-{
-  // Outliers_MostCommonValues_{column_name}.tsv
-  // Outliers_LeastCommonValues_{ column_name }.tsv
-  // Formats_MostCommonValues_{ column_name }.tsv
-  // Formats_LeastCommonValues_{ column_name }.tsv
-
-  if (strlen(output_filename) && raw_value && strlen(raw_value))
-  {
-    FILE* multiValueFile = fopen(output_filename, "w");
-    if (multiValueFile == NULL)
-    {
-      printf("Error: Could not open file %s\n", output_filename);
-      return 1;
-    }
-
-    if (do_strat)
-      strat_to_tab(raw_value);
-    else
-      list_to_tab(raw_value);
-
-    fputs(raw_value, multiValueFile);
-    if (multiValueFile) fclose(multiValueFile);
-  }
-
-  return 0;
 }
 
 static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
@@ -391,13 +337,13 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
       fputs(pdf->MONTH.value ? pdf->MONTH.value : "", categoryFile);
       char output_filename[128] = { 0 };
       sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "Month", curr->df.name);
-      output_commons_column(fpfi, pdf->MONTH.raw_value, output_filename, true);
+      output_commons_column(fpfi, pdf->MONTH.raw_value, output_filename);
     }
     else if (fpfi == 4) {
       fputs(pdf->DOW.value ? pdf->DOW.value : "", categoryFile);
       char output_filename[128] = { 0 };
       sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "DayOfWeek", curr->df.name);
-      output_commons_column(fpfi, pdf->DOW.raw_value, output_filename, true);
+      output_commons_column(fpfi, pdf->DOW.raw_value, output_filename);
     }
     else if (fpfi == 5) fputs(pdf->DOM.value ? pdf->DOM.value : "", categoryFile);
     else if (fpfi == 6) fputs(pdf->QUARTER.value ? pdf->QUARTER.value : "", categoryFile);
@@ -408,8 +354,6 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
     curr = curr->dfs;
   }
 }
-
-
 
 static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
 {
