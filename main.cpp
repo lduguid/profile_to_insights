@@ -29,6 +29,48 @@ static bool is_multi_value(const char *value)
   return false;
 }
 
+static void strat_to_tab(char* raw_value)
+{
+  if (raw_value)
+  {
+    char* curr = raw_value;
+    char* prev_curr = curr;
+    while (curr)
+    {
+      char c = *curr;
+      if (c == '\0') break;
+      if (c == PROFILESEPARATOR)
+      {
+        *curr = '\0';
+        char* start = strrchr(prev_curr, ' ');
+        *start = '\t';
+        *curr = '\n';
+        prev_curr = curr;
+        prev_curr++;
+      }
+
+      curr++;
+    }
+  }
+}
+
+static void list_to_tab(char* raw_value)
+{
+  if (raw_value)
+  {
+    char* curr = raw_value;
+    char* prev_curr = curr;
+    while (curr)
+    {
+      char c = *curr;
+      if (c == '\0') break;
+      else if (c == PROFILESEPARATOR) *curr = '\n';
+      else if (c == ' ') *curr = '\t';
+      curr++;
+    }
+  }
+}
+
 static void add_field_type_list(int index, data_field *cdf)
 {
   
@@ -210,33 +252,6 @@ static void output_statistics(int i, int fpfi, data_fields* curr, profile_data_f
   }
 }
 
-static void list_to_tab(char* raw_value)
-{
-  if (raw_value)
-  {
-    // TODO prepare list raw_value to tab delim record for output;
-    char* curr = raw_value;
-    char* prev_curr = curr;
-    while (curr)
-    {
-      char c = *curr;
-      if (c == '\0') break;
-      if (c == PROFILESEPARATOR)
-      {
-        *curr = '\0';
-        char* start = strrchr(prev_curr, ' ');
-        *start = '\t';
-        *curr = '\n';
-
-        prev_curr = curr;
-        prev_curr++;
-      }
-
-      curr++;
-    }
-  }
-}
-
 static int output_distribution_column(int fpfi, const char* value, char* raw_value, const char* column_name)
 {
   // For each `green value` in profiler using separate tsv file.
@@ -260,8 +275,6 @@ static int output_distribution_column(int fpfi, const char* value, char* raw_val
   // handle multi value - ineffiecent as will write out same raw_value up to 4 times if
   // VARIANCE, STDEV, KURTOSIS, SKEWNESS all have some value.
 
-  static bool has_written = false;
-
   switch (fpfi)
   {
   case 4: // VARIANCE
@@ -273,7 +286,7 @@ static int output_distribution_column(int fpfi, const char* value, char* raw_val
     {
       // Distribution_{ column_name }.tsv
       char output_filename[128] = { 0 };
-      sprintf(output_filename, "Distribution__%s.tsv", column_name);
+      sprintf(output_filename, "Distribution_%s.tsv", column_name);
       FILE* multiValueFile = fopen(output_filename, "w");
       if (multiValueFile == NULL)
       {
@@ -282,10 +295,8 @@ static int output_distribution_column(int fpfi, const char* value, char* raw_val
       }
 
       //printf("Info: Creating the file %s\n", output_filename);
-
-      list_to_tab(raw_value);
+      strat_to_tab(raw_value);
       fputs(raw_value, multiValueFile);
-
       if (multiValueFile) fclose(multiValueFile);
     }
   }
@@ -359,6 +370,30 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
   }
 }
 
+static int output_commons_column(int fpfi, char* raw_value, const char* output_filename)
+{
+  // Outliers_MostCommonValues_{column_name}.tsv
+  // Outliers_LeastCommonValues_{ column_name }.tsv
+  // Formats_MostCommonValues_{ column_name }.tsv
+  // Formats_LeastCommonValues_{ column_name }.tsv
+
+  if (strlen(output_filename) && raw_value && strlen(raw_value))
+  {
+    FILE* multiValueFile = fopen(output_filename, "w");
+    if (multiValueFile == NULL)
+    {
+      printf("Error: Could not open file %s\n", output_filename);
+      return 1;
+    }
+
+    list_to_tab(raw_value);
+    fputs(raw_value, multiValueFile);
+    if (multiValueFile) fclose(multiValueFile);
+  }
+
+  return 0;
+}
+
 static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
@@ -381,8 +416,18 @@ static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fie
     else if (fpfi == 2) fputs(pdf->SHORTEST.value ? pdf->SHORTEST.value : "", categoryFile);
     else if (fpfi == 3) fputs(pdf->LOWEST.value ? pdf->LOWEST.value : "", categoryFile);
     else if (fpfi == 4) fputs(pdf->HIGHEST.value ? pdf->HIGHEST.value : "", categoryFile);
-    else if (fpfi == 5) fputs(pdf->MOST_COMMON.value ? pdf->MOST_COMMON.value : "", categoryFile);
-    else if (fpfi == 6) fputs(pdf->LEAST_COMMON.value ? pdf->LEAST_COMMON.value : "", categoryFile);
+    else if (fpfi == 5) { 
+      fputs(pdf->MOST_COMMON.value ? pdf->MOST_COMMON.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Outliers", "MostCommonValues", curr->df.name);
+      output_commons_column(fpfi, pdf->MOST_COMMON.raw_value, output_filename);
+    }
+    else if (fpfi == 6) { 
+      fputs(pdf->LEAST_COMMON.value ? pdf->LEAST_COMMON.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Outliers", "LeastCommonValues", curr->df.name);
+      output_commons_column(fpfi, pdf->LEAST_COMMON.raw_value, output_filename);
+    }
     else if (fpfi == 7) fputs(pdf->UNIQUE.value ? pdf->UNIQUE.value : "", categoryFile);
     else if (fpfi == 8) fputs(pdf->UNIQUE_ONE.value ? pdf->UNIQUE_ONE.value : "", categoryFile);
 
@@ -410,8 +455,18 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
     fputs("\t", categoryFile);
     if (fpfi == 1) fputs(pdf->FORMAT_UNIQUE.value ? pdf->FORMAT_UNIQUE.value : "", categoryFile);
     else if (fpfi == 2) fputs(pdf->FORMAT_UNIQUE_ONE.value ? pdf->FORMAT_UNIQUE_ONE.value : "", categoryFile);
-    else if (fpfi == 3) fputs(pdf->FORMAT_MOST_COMMON.value ? pdf->FORMAT_MOST_COMMON.value : "", categoryFile);
-    else if (fpfi == 4) fputs(pdf->FORMAT_LEAST_COMMON.value ? pdf->FORMAT_LEAST_COMMON.value : "", categoryFile);
+    else if (fpfi == 3) {
+      fputs(pdf->FORMAT_MOST_COMMON.value ? pdf->FORMAT_MOST_COMMON.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Formats", "MostCommonValues", curr->df.name);
+      output_commons_column(fpfi, pdf->MOST_COMMON.raw_value, output_filename);
+    }
+    else if (fpfi == 4) {
+      fputs(pdf->FORMAT_LEAST_COMMON.value ? pdf->FORMAT_LEAST_COMMON.value : "", categoryFile);
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "%s_%s_%s.tsv", "Formats", "LeastCommonValues", curr->df.name);
+      output_commons_column(fpfi, pdf->LEAST_COMMON.raw_value, output_filename);
+    }
     else if (fpfi == 5) fputs(pdf->LLN.value ? pdf->LLN.value : "", categoryFile);
     else if (fpfi == 6) fputs(pdf->LLR.value ? pdf->LLR.value : "", categoryFile);
     else if (fpfi == 7) fputs(pdf->LLD.value ? pdf->LLD.value : "", categoryFile);
@@ -526,7 +581,6 @@ int main(char argc, char* argv[])
             {
               fputs("\t", categoryFile);
               fputs(curr->df.name, categoryFile);
-
               curr = curr->dfs;
             }
           }
@@ -566,15 +620,10 @@ int main(char argc, char* argv[])
       }
 
       row_count++;
-      
-      // append newline to row.
-      
-      fputs("\n", categoryFile);
+      fputs("\n", categoryFile);   // append newline to row.
     }
 
-    // close file
-
-    if (categoryFile) fclose(categoryFile);
+    if (categoryFile) fclose(categoryFile); // close current category file
   }
 
   return 0;
