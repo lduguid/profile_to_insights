@@ -81,7 +81,7 @@ profile_category profile_category_files[] = {
 	{CATDISTRIBUTION,  7, "Distribution.tsv" },
 	{CATDATETIME,			 9, "DateTime.tsv"     },
 	{CATOUTLIERS,			 8, "Outliers.tsv"     },
-	{CATFORMATS,			 8, "Formats.tsv"      }
+	{CATFORMATS,			 7, "Formats.tsv"      }
 };
 
 
@@ -200,7 +200,7 @@ profile_data_fields profile_data = {
 	.LLN									= {.profile_name = {PROFILELLN					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr },
 	.LLR									= {.profile_name = {PROFILELLR					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr },
 	.LLD									= {.profile_name = {PROFILELLD					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr },
-	.STRAT								= {.profile_name = {PROFILESTA					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr }
+	.STRAT								= {.profile_name = {PROFILESTA					}, .category_name = {nullptr}, .value = nullptr, .raw_value = nullptr }
 };
 
 

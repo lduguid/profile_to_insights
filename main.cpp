@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS 1
+﻿#define _CRT_SECURE_NO_WARNINGS 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -123,9 +123,9 @@ static void populate_value(char *buf, data_field *cdf)
     else if (strcmp(key, PROFILELONGEST) == 0) cdf->pdf->LONGEST.value = val;
     else if (strcmp(key, PROFILESHORTEST) == 0) cdf->pdf->SHORTEST.value = val;
     else if (strcmp(key, PROFILELOWEST) == 0) { cdf->pdf->LOWEST.value = val; cdf->pdf->LOWEST.raw_value = raw_val; }
-    else if (strcmp(key, PROFILEHIGHEST) == 0) cdf->pdf->HIGHEST.value = val;
-    else if (strcmp(key, PROFILEMOSTCOMMON) == 0) cdf->pdf->FORMAT_MOST_COMMON.value = val;
-    else if (strcmp(key, PROFILELEASTCOMMON) == 0) cdf->pdf->LEAST_COMMON.value = val;
+    else if (strcmp(key, PROFILEHIGHEST) == 0) { cdf->pdf->HIGHEST.value = val; cdf->pdf->HIGHEST.raw_value = raw_val; }
+    else if (strcmp(key, PROFILEMOSTCOMMON) == 0) { cdf->pdf->MOST_COMMON.value = val; cdf->pdf->MOST_COMMON.raw_value = raw_val; }
+    else if (strcmp(key, PROFILELEASTCOMMON) == 0) { cdf->pdf->LEAST_COMMON.value = val; cdf->pdf->LEAST_COMMON.raw_value = raw_val; }
     else if (strcmp(key, PROFILEUNIQUE) == 0) cdf->pdf->UNIQUE.value = val;
     else if (strcmp(key, PROFILEUNIQUEONE) == 0) cdf->pdf->UNIQUE_ONE.value = val;
     // FORMAT
@@ -136,7 +136,8 @@ static void populate_value(char *buf, data_field *cdf)
     else if (strcmp(key, PROFILELLN) == 0) cdf->pdf->LLN.value = val;
     else if (strcmp(key, PROFILELLR) == 0) cdf->pdf->LLR.value = val;
     else if (strcmp(key, PROFILELLD) == 0) cdf->pdf->LLD.value = val;
-    else if (strcmp(key, PROFILESTA) == 0) cdf->pdf->STRAT.value = val;
+    // No CATEGORY, stratification results consumed by PROFILEVARIANCE, PROFILESTDEV, PROFILEKURT, PROFILESKEW drilldown.
+    else if (strcmp(key, PROFILESTA) == 0) { cdf->pdf->STRAT.value = val; cdf->pdf->STRAT.raw_value = raw_val; }
     else printf("key: %s, not found!", key);
   }
 }
@@ -209,6 +210,91 @@ static void output_statistics(int i, int fpfi, data_fields* curr, profile_data_f
   }
 }
 
+static void list_to_tab(char* raw_value)
+{
+  if (raw_value)
+  {
+    // TODO prepare list raw_value to tab delim record for output;
+    char* curr = raw_value;
+    char* prev_curr = curr;
+    while (curr)
+    {
+      char c = *curr;
+      if (c == '\0') break;
+      if (c == PROFILESEPARATOR)
+      {
+        *curr = '\0';
+        char* start = strrchr(prev_curr, ' ');
+        *start = '\t';
+        *curr = '\n';
+
+        prev_curr = curr;
+        prev_curr++;
+      }
+
+      curr++;
+    }
+  }
+}
+
+static int output_distribution_column(int fpfi, const char* value, char* raw_value, const char* column_name)
+{
+  // For each `green value` in profiler using separate tsv file.
+  // Distribution: tsv of Distribution(it same for Standard deviation, Kurtosis, Skewness)
+  // Outliers : MostCommonValues, LeastCommonValues
+  // Datetime : Year, Months, DayOfWeek
+  //
+  // supplementary
+  // ├── Distribution_{ column_name }.tsv
+  //
+  // ├── Outliers_MostCommonValues_{ column_name }.tsv
+  // ├── Outliers_LeastCommonValues_{ column_name }.tsv
+  //
+  // ├── Formats_MostCommonValues_{ column_name }.tsv
+  // ├── Formats_LeastCommonValues_{ column_name }.tsv
+  //
+  // ├── Datetime_Year_{ column_name }.tsv
+  // ├── Datetime_Months_{ column_name }.tsv
+  // └── DateTime_DayOfWeek_{ column_name }.tsv
+
+  // handle multi value - ineffiecent as will write out same raw_value up to 4 times if
+  // VARIANCE, STDEV, KURTOSIS, SKEWNESS all have some value.
+
+  static bool has_written = false;
+
+  switch (fpfi)
+  {
+  case 4: // VARIANCE
+  case 5: // STDEV
+  case 6: // KURTOSIS
+  case 7: // SKEWNESS
+  {
+    if (value && strlen(value))
+    {
+      // Distribution_{ column_name }.tsv
+      char output_filename[128] = { 0 };
+      sprintf(output_filename, "Distribution__%s.tsv", column_name);
+      FILE* multiValueFile = fopen(output_filename, "w");
+      if (multiValueFile == NULL)
+      {
+        printf("Error: Could not open file %s\n", output_filename);
+        return 1;
+      }
+
+      //printf("Info: Creating the file %s\n", output_filename);
+
+      list_to_tab(raw_value);
+      fputs(raw_value, multiValueFile);
+
+      if (multiValueFile) fclose(multiValueFile);
+    }
+  }
+  break;
+  }
+
+  return 0;
+}
+
 static void output_distribution(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
@@ -233,6 +319,8 @@ static void output_distribution(int i, int fpfi, data_fields* curr, profile_data
     else if (fpfi == 5) fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
     else if (fpfi == 6) fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
     else if (fpfi == 7) fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
+    
+    output_distribution_column(fpfi, pdf->STRAT.value, pdf->STRAT.raw_value, curr->df.name);
     
     curr = curr->dfs;
   }
@@ -313,7 +401,7 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
     else if (fpfi == 5) fputs(pdf->LLN.profile_name, categoryFile);
     else if (fpfi == 6) fputs(pdf->LLR.profile_name, categoryFile);
     else if (fpfi == 7) fputs(pdf->LLD.profile_name, categoryFile);
-    else if (fpfi == 8) fputs(pdf->STRAT.profile_name, categoryFile);
+    //else if (fpfi == 8) fputs(pdf->STRAT.profile_name, categoryFile);
   }
 
   while (curr)
@@ -327,7 +415,7 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
     else if (fpfi == 5) fputs(pdf->LLN.value ? pdf->LLN.value : "", categoryFile);
     else if (fpfi == 6) fputs(pdf->LLR.value ? pdf->LLR.value : "", categoryFile);
     else if (fpfi == 7) fputs(pdf->LLD.value ? pdf->LLD.value : "", categoryFile);
-    else if (fpfi == 8) fputs(pdf->STRAT.value ? pdf->STRAT.value : "", categoryFile);
+    //else if (fpfi == 8) fputs(pdf->STRAT.value ? pdf->STRAT.value : "", categoryFile);
 
     curr = curr->dfs;
   }

@@ -370,3 +370,7 @@ FodyWeavers.xsd
 /foo.txt
 /profile.info
 /profile_to_insights.exe
+/Distribution__Amount.tsv
+/Distribution__Invoice_Amount.tsv
+/Distribution__Quantity.tsv
+/Distribution__Unit_Cost.tsv
