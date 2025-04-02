@@ -1,6 +1,8 @@
 #pragma once
 
 
+# define SUPPLEMENTARY_FOLDER "supplementary"
+
 #define PROFILEFILENAME "profile.info"
 
 #define PROFILESEPARATOR    '|'

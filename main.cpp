@@ -3,9 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#ifdef _MSC_VER
+#include <direct.h>
+#endif 
 
 #include "defines.h"
+
+char output_folder[128] = { 0 };  // TODO pass as param to required functions, so not global.
 
 
 static void get_column_key(char* row_buffer, char *key)
@@ -62,7 +66,7 @@ static void add_field_type_list(int index, data_field *cdf)
 
 static void populate_value(char *buf, data_field *cdf)
 {
-  char key[128] = { 0 };
+  char key[256] = { 0 };
   get_column_key(buf, key);
   const char* value = get_column_value(buf, '\n');
   char* raw_val = nullptr;
@@ -182,6 +186,8 @@ static int output_commons_column(int fpfi, char* raw_value, const char* output_f
       return 1;
     }
 
+    printf("Info: Creating the file %s\n", output_filename);
+
     prepare_list_for_tab_output(raw_value);
     fputs(raw_value, multiValueFile);
     if (multiValueFile) fclose(multiValueFile);
@@ -280,26 +286,26 @@ static void output_distribution(int i, int fpfi, data_fields* curr, profile_data
     else if (fpfi == 3) fputs(pdf->Q75.value ? pdf->Q75.value : "", categoryFile);
     else if (fpfi == 4) {
       fputs(pdf->VARIANCE.value ? pdf->VARIANCE.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
       output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 5) {
       fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
       output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 6) {
       fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
       output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 7) {
       fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "Distribution_%s.tsv", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
       output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     
@@ -329,20 +335,20 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
     if (fpfi == 1) fputs(pdf->WEEKENDS.value ? pdf->WEEKENDS.value : "", categoryFile);
     else if (fpfi == 2) {
       fputs(pdf->YEAR.value ? pdf->YEAR.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "Year", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Datetime", "Year", curr->df.name);
       output_commons_column(fpfi, pdf->YEAR.raw_value, output_filename);
     }
     else if (fpfi == 3) {
       fputs(pdf->MONTH.value ? pdf->MONTH.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "Month", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Datetime", "Month", curr->df.name);
       output_commons_column(fpfi, pdf->MONTH.raw_value, output_filename);
     }
     else if (fpfi == 4) {
       fputs(pdf->DOW.value ? pdf->DOW.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Datetime", "DayOfWeek", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Datetime", "DayOfWeek", curr->df.name);
       output_commons_column(fpfi, pdf->DOW.raw_value, output_filename);
     }
     else if (fpfi == 5) fputs(pdf->DOM.value ? pdf->DOM.value : "", categoryFile);
@@ -379,14 +385,14 @@ static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fie
     else if (fpfi == 4) fputs(pdf->HIGHEST.value ? pdf->HIGHEST.value : "", categoryFile);
     else if (fpfi == 5) { 
       fputs(pdf->MOST_COMMON.value ? pdf->MOST_COMMON.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Outliers", "MostCommonValues", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Outliers", "MostCommonValues", curr->df.name);
       output_commons_column(fpfi, pdf->MOST_COMMON.raw_value, output_filename);
     }
     else if (fpfi == 6) { 
       fputs(pdf->LEAST_COMMON.value ? pdf->LEAST_COMMON.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Outliers", "LeastCommonValues", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Outliers", "LeastCommonValues", curr->df.name);
       output_commons_column(fpfi, pdf->LEAST_COMMON.raw_value, output_filename);
     }
     else if (fpfi == 7) fputs(pdf->UNIQUE.value ? pdf->UNIQUE.value : "", categoryFile);
@@ -418,14 +424,14 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
     else if (fpfi == 2) fputs(pdf->FORMAT_UNIQUE_ONE.value ? pdf->FORMAT_UNIQUE_ONE.value : "", categoryFile);
     else if (fpfi == 3) {
       fputs(pdf->FORMAT_MOST_COMMON.value ? pdf->FORMAT_MOST_COMMON.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Formats", "MostCommonValues", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Formats", "MostCommonValues", curr->df.name);
       output_commons_column(fpfi, pdf->FORMAT_MOST_COMMON.raw_value, output_filename);
     }
     else if (fpfi == 4) {
       fputs(pdf->FORMAT_LEAST_COMMON.value ? pdf->FORMAT_LEAST_COMMON.value : "", categoryFile);
-      char output_filename[128] = { 0 };
-      sprintf(output_filename, "%s_%s_%s.tsv", "Formats", "LeastCommonValues", curr->df.name);
+      char output_filename[256] = { 0 };
+      sprintf(output_filename, "%s%s\\%s_%s_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, "Formats", "LeastCommonValues", curr->df.name);
       output_commons_column(fpfi, pdf->FORMAT_LEAST_COMMON.raw_value, output_filename);
     }
     else if (fpfi == 5) fputs(pdf->LLN.value ? pdf->LLN.value : "", categoryFile);
@@ -442,9 +448,30 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
 // heap memory is not expliclty freed!  As the lifetime of this memory is the the duration fo the executable, OS cleans it all up on exit.
 // if this code is to be re-purposed in an larger application, free'ing will be required.
 
+
 int main(char argc, char* argv[])
 {
-  // INPUT - read input file PROFILEFILENAME and populate internal ADT to represent its contents
+
+#ifdef  _MSC_VER
+  
+  if (argc > 1 && strlen(argv[1]) > 0 && strlen(argv[1]) < 64)
+  {
+    strncpy(output_folder, argv[1], strlen(argv[1]));
+    sprintf(output_folder, "%s\\", output_folder);
+    _mkdir(output_folder);
+    // create 'supplementary' folder
+    char sup_folder[128] = { 0 };
+    sprintf(sup_folder, "%s%s", output_folder, SUPPLEMENTARY_FOLDER);
+    _mkdir(sup_folder);
+  }
+  else
+  {
+    // create 'supplementary' folder
+    _mkdir(SUPPLEMENTARY_FOLDER);
+  }
+#endif
+
+    // INPUT - read input file PROFILEFILENAME and populate internal ADT to represent its contents
 
   FILE *profileFile = fopen(PROFILEFILENAME, "r");
   if (profileFile == NULL)
@@ -463,7 +490,7 @@ int main(char argc, char* argv[])
     {
       fgets(raw_buffer, 8196, profileFile);       // slurp up PROFILEFKEY
     }
-    
+     
     if (strncmp(raw_buffer, PROFILEFNAME, strlen(PROFILEFNAME)) == 0)
     {
       const char* column_name = get_column_value(raw_buffer, ' ');
@@ -507,15 +534,16 @@ int main(char argc, char* argv[])
   for (int ii = 0; ii < sizeof(profile_category_files) / sizeof(profile_category_files[0]); ii++)
   {
     // open current category tsv file
-
-    FILE *categoryFile = fopen(profile_category_files[ii].output_filename, "w");
+    char full_output_path[256] = { 0 };
+    sprintf(full_output_path, "%s%s", output_folder, profile_category_files[ii].output_filename);
+    FILE *categoryFile = fopen(full_output_path, "w");
     if (categoryFile == NULL)
     {
-      printf("Error: Could not open file %s\n", profile_category_files[ii].output_filename);
+      printf("Error: Could not open file %s\n", full_output_path);
       return 1;
     }
 
-    printf("Info: Creating the file %s\n", profile_category_files[ii].output_filename);
+    printf("Info: Creating the file %s\n", full_output_path);
 
     // do for column headers, then profile data
     
@@ -530,10 +558,10 @@ int main(char argc, char* argv[])
         data_fields* head = &data_fields_types_list[i];
         data_fields* curr = head;
 
-        // header columns
-
         if (strlen(curr->df.name) > 0)
         {
+          // header columns
+
           if (row_count == 0)
           {
             while (curr)
