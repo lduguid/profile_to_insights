@@ -9,6 +9,7 @@
 
 #include "defines.h"
 
+
 char output_folder[128] = { 0 };  // TODO pass as param to required functions, so not global.
 
 
@@ -445,8 +446,8 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
 
 
 // requires an profile.info file in the CWD.  If RUN from analyzer, ensure profile tab open (profile.info deleted on tab close)
-// heap memory is not expliclty freed!  As the lifetime of this memory is the the duration fo the executable, OS cleans it all up on exit.
-// if this code is to be re-purposed in an larger application, free'ing will be required.
+// heap memory is not explicitly freed!  As the lifetime of this memory is the the duration fo the executable, OS cleans it all up on exit.
+// if this code is to be re-purposed in an larger application, freeing will be required.
 
 
 int main(char argc, char* argv[])
