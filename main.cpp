@@ -290,25 +290,25 @@ static void output_distribution(int i, int fpfi, data_fields* curr, profile_data
       fputs(pdf->VARIANCE.value ? pdf->VARIANCE.value : "", categoryFile);
       char output_filename[256] = { 0 };
       sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
-      output_commons_column(pdf->YEAR.raw_value, output_filename);
+      output_commons_column(pdf->STRAT.raw_value, output_filename);
     }
     else if (fpfi == 5) {
       fputs(pdf->STDEV.value ? pdf->STDEV.value : "", categoryFile);
       char output_filename[256] = { 0 };
       sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
-      output_commons_column(pdf->YEAR.raw_value, output_filename);
+      output_commons_column(pdf->STRAT.raw_value, output_filename);
     }
     else if (fpfi == 6) {
       fputs(pdf->KURTOSIS.value ? pdf->KURTOSIS.value : "", categoryFile);
       char output_filename[256] = { 0 };
       sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
-      output_commons_column(pdf->YEAR.raw_value, output_filename);
+      output_commons_column(pdf->STRAT.raw_value, output_filename);
     }
     else if (fpfi == 7) {
       fputs(pdf->SKEWNESS.value ? pdf->SKEWNESS.value : "", categoryFile);
       char output_filename[256] = { 0 };
       sprintf(output_filename, "%s%s\\Distribution_%s.tsv", output_folder, SUPPLEMENTARY_FOLDER, curr->df.name);
-      output_commons_column(pdf->YEAR.raw_value, output_filename);
+      output_commons_column(pdf->STRAT.raw_value, output_filename);
     }
     
     curr = curr->dfs;
