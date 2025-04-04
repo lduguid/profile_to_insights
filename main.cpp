@@ -1,5 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS 1
-
+﻿
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,9 +8,6 @@
 #endif 
 
 #include "defines.h"
-
-
-char output_folder[128] = { 0 };  // TODO pass as param to required functions, so not global.
 
 
 static void get_column_key(char* row_buffer, char *key)
@@ -266,7 +262,7 @@ static void output_statistics(int i, int fpfi, data_fields* curr, profile_data_f
   }
 }
 
-static void output_distribution(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+static void output_distribution(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, const char * output_folder, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
   {
@@ -315,7 +311,7 @@ static void output_distribution(int i, int fpfi, data_fields* curr, profile_data
   }
 }
 
-static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, const char* output_folder, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
   {
@@ -363,7 +359,7 @@ static void output_datetime(int i, int fpfi, data_fields* curr, profile_data_fie
   }
 }
 
-static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, const char* output_folder, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
   {
@@ -404,7 +400,7 @@ static void output_outliers(int i, int fpfi, data_fields* curr, profile_data_fie
   }
 }
 
-static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, FILE* categoryFile)
+static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fields* pdf, const char* output_folder, FILE* categoryFile)
 {
   if (i == 0)   // first field node.
   {
@@ -453,6 +449,7 @@ static void output_formats(int i, int fpfi, data_fields* curr, profile_data_fiel
 
 int main(char argc, char* argv[])
 {
+  char output_folder[128] = { 0 };  // TODO pass as param to required functions, so not global.
 
 #ifdef  _MSC_VER
   
@@ -460,16 +457,16 @@ int main(char argc, char* argv[])
   {
     strncpy(output_folder, argv[1], strlen(argv[1]));
     sprintf(output_folder, "%s\\", output_folder);
-    _mkdir(output_folder);
+    (void)_mkdir(output_folder);
     // create 'supplementary' folder
     char sup_folder[128] = { 0 };
     sprintf(sup_folder, "%s%s", output_folder, SUPPLEMENTARY_FOLDER);
-    _mkdir(sup_folder);
+    (void)_mkdir(sup_folder);
   }
   else
   {
     // create 'supplementary' folder
-    _mkdir(SUPPLEMENTARY_FOLDER);
+    (void)_mkdir(SUPPLEMENTARY_FOLDER);
   }
 #endif
 
@@ -529,7 +526,7 @@ int main(char argc, char* argv[])
 
   if (profileFile) fclose(profileFile);
 
-  // OUTPUT - traverse and write out internal ADT of profile data on each column to the requested tab-seperated output files.
+  // OUTPUT - traverse and write out internal ADT of profile data on each column to the requested tab-separated output files.
 
   // iterate over each profile data out file
 
@@ -590,19 +587,19 @@ int main(char argc, char* argv[])
             }
             else if (strcmp(profile_category_files[ii].catname, CATDISTRIBUTION) == 0)
             {
-              output_distribution(i, fpfi, curr, pdf, categoryFile);
+              output_distribution(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
             else if (strcmp(profile_category_files[ii].catname, CATDATETIME) == 0)
             {
-              output_datetime(i, fpfi, curr, pdf, categoryFile);
+              output_datetime(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
             else if (strcmp(profile_category_files[ii].catname, CATOUTLIERS) == 0)
             {
-              output_outliers(i, fpfi, curr, pdf, categoryFile);
+              output_outliers(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
             else if (strcmp(profile_category_files[ii].catname, CATFORMATS) == 0)
             {
-              output_formats(i, fpfi, curr, pdf, categoryFile);
+              output_formats(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
           }
         }
