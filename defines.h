@@ -71,7 +71,7 @@
 
 
 typedef struct {
-	const char* catname;
+	const char* category_name;
 	int field_count;
 	const char* output_filename;
 } profile_category;
@@ -202,7 +202,7 @@ profile_data_fields profile_data = {
 	.LLN									= {.profile_name = {PROFILELLN					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr },
 	.LLR									= {.profile_name = {PROFILELLR					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr },
 	.LLD									= {.profile_name = {PROFILELLD					}, .category_name = {CATFORMATS				}, .value = nullptr, .raw_value = nullptr },
-	.STRAT								= {.profile_name = {PROFILESTA					}, .category_name = {nullptr}, .value = nullptr, .raw_value = nullptr }
+	.STRAT								= {.profile_name = {PROFILESTA					}, .category_name = {nullptr					}, .value = nullptr, .raw_value = nullptr }
 };
 
 

@@ -577,27 +577,27 @@ int main(char argc, char* argv[])
             curr = head;
             profile_data_fields* pdf = curr->df.pdf;
 
-            if (strcmp(profile_category_files[ii].catname, CATVERIFICATION) == 0)
+            if (strcmp(profile_category_files[ii].category_name, CATVERIFICATION) == 0)
             {
               output_verification(i, fpfi, curr, pdf, categoryFile);
             }
-            else if (strcmp(profile_category_files[ii].catname, CATSTATISTICS) == 0)
+            else if (strcmp(profile_category_files[ii].category_name, CATSTATISTICS) == 0)
             {
               output_statistics(i, fpfi, curr, pdf, categoryFile);
             }
-            else if (strcmp(profile_category_files[ii].catname, CATDISTRIBUTION) == 0)
+            else if (strcmp(profile_category_files[ii].category_name, CATDISTRIBUTION) == 0)
             {
               output_distribution(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
-            else if (strcmp(profile_category_files[ii].catname, CATDATETIME) == 0)
+            else if (strcmp(profile_category_files[ii].category_name, CATDATETIME) == 0)
             {
               output_datetime(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
-            else if (strcmp(profile_category_files[ii].catname, CATOUTLIERS) == 0)
+            else if (strcmp(profile_category_files[ii].category_name, CATOUTLIERS) == 0)
             {
               output_outliers(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
-            else if (strcmp(profile_category_files[ii].catname, CATFORMATS) == 0)
+            else if (strcmp(profile_category_files[ii].category_name, CATFORMATS) == 0)
             {
               output_formats(i, fpfi, curr, pdf, output_folder, categoryFile);
             }
